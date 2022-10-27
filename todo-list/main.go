@@ -18,6 +18,12 @@ func main() {
 		fmt.Println("Status:", err)
 	}
 
+	config.FirebaseApp, err = config.InitialFirebase("./firebase.json")
+
+	if err != nil {
+		fmt.Println("Status", err)
+	}
+
 	defer config.DB.Close()
 	config.DB.AutoMigrate(&models.User{})
 	config.DB.AutoMigrate(&models.Todo{})

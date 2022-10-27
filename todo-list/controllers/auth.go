@@ -15,6 +15,7 @@ type TokenRequest struct {
 }
 
 func GenerateToken(context *gin.Context) {
+
 	var request TokenRequest
 	var user models.User
 
@@ -23,6 +24,7 @@ func GenerateToken(context *gin.Context) {
 		context.Abort()
 		return
 	}
+
 	//check if email exists and password is correct
 	if err := services.FindUserByEmail(&user, request.Email); err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err})
