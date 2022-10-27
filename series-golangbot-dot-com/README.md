@@ -10,7 +10,7 @@
 [III - Conditional Statements and Loops](#3)
 [If else statement](#if-statement)
 [Loops](#Loops)
-[Switch Statement](#switch)
+[Switch Statement](https://github.com/CNDvn/Learn-Go/tree/main/series-golangbot-dot-com#switch)
 
 # I - Variables, Types and Constants {#1}
 
@@ -511,7 +511,7 @@ func main() {
 }
 ```
 
-## [Switch Statement](https://golangbot.com/switch/) {#switch}
+## [Switch Statement](https://golangbot.com/switch/) {https://github.com/CNDvn/Learn-Go/tree/main/series-golangbot-dot-com#switch}
 
 Example:
 
