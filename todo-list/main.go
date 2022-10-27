@@ -13,7 +13,7 @@ var err error
 
 func main() {
 	config.DB, err = gorm.Open("mysql", config.DbURL(config.BuildDBConfig()))
-
+	config.DB.LogMode(true)
 	if err != nil {
 		fmt.Println("Status:", err)
 	}

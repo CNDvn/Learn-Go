@@ -2,6 +2,7 @@ package routes
 
 import (
 	"todo-app/controllers"
+	"todo-app/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,9 +10,14 @@ import (
 func SetupRouter() *gin.Engine {
 	routes := gin.Default()
 
-	todoRoute := routes.Group("/todos")
+	authRoute := routes.Group("/auth")
 	{
-		todoRoute.GET("", controllers.GetTodos)
+		authRoute.POST("/login", controllers.GenerateToken)
+	}
+
+	todoRoute := routes.Group("/todos").Use(middlewares.Auth())
+	{
+		todoRoute.GET("", controllers.GetTodosByUserId)
 		todoRoute.POST("", controllers.CreateTodo)
 	}
 

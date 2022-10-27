@@ -18,7 +18,18 @@ func GetAllUsers(users *[]models.User) (err error) {
 }
 
 func CreateUser(user *models.User) (err error) {
-	if err = config.DB.Create(user).Error; err != nil {
+	if err := user.HashPassword(); err != nil {
+		return err
+	}
+	if err := config.DB.Create(user).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func FindUserByEmail(user *models.User, email string) (err error) {
+	if err = config.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		return err
 	}
 	return nil
