@@ -11,6 +11,8 @@
 [If else statement](#if-statement)
 [Loops](#Loops)
 [Switch Statement](#switch)
+[Arrays and Slices](#arrays-and-slices)
+[Variadic Functions](#variadic-functions)
 
 # I - Variables, Types and Constants {#1}
 
@@ -757,3 +759,499 @@ randloop:
 ```
 
 **Please note that if the break statement is used without the label, the switch statement will only be broken and the loop will continue running. So labeling the loop and using it in the break statement inside the switch is necessary to break the outer for loop.**
+
+## [Arrays and Slices](https://golangbot.com/arrays-and-slices/) {#arrays-and-slices}
+
+#### Arrays
+
+An array is a collection of elements that belong to the same type
+
+- Declaration
+  An array belongs to type `[n]T`. `n` denotes the number of elements in an array and `T` represents the type of each element. The number of elements `n` is also a part of the type
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+
+func main() {
+    var a [3]int //int array with length 3
+    fmt.Println(a)
+}
+```
+
+create the same array using the short hand declaration.
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    a := [3]int{12, 78, 50} // short hand declaration to create array
+    fmt.Println(a)
+}
+```
+
+ignore the length of the array in the declaration and replace it with `...` and let the compiler find the length for you. This is done in the following program.
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    a := [...]int{12, 78, 50} // ... makes the compiler determine the length
+    fmt.Println(a)
+}
+```
+
+The size of the array is a part of the type. Hence [5]int and [25]int are distinct types. Because of this, arrays cannot be resized. Don't worry about this restriction since slices exist to overcome this.
+
+```go
+package main
+
+func main() {
+    a := [3]int{5, 78, 8}
+    var b [5]int
+    b = a //not possible since [3]int and [5]int are distinct types
+}
+```
+
+- Arrays are value types
+  Arrays in Go are value types and not reference types. This means that when they are assigned to a new variable, a copy of the original array is assigned to the new variable. If changes are made to the new variable, it will not be reflected in the original array.
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    a := [...]string{"USA", "China", "India", "Germany", "France"}
+    b := a // a copy of a is assigned to b
+    b[0] = "Singapore"
+    fmt.Println("a is ", a)
+    fmt.Println("b is ", b)
+}
+```
+
+```
+a is [USA China India Germany France]
+b is [Singapore China India Germany France]
+```
+
+- Length of an array: The length of the array is found by passing the array as parameter to the `len` function.
+
+- Iterating arrays using range: The `for` loop can be used to iterate over elements of an array.
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    a := [...]float64{67.7, 89.8, 21, 78}
+    for i := 0; i < len(a); i++ { //looping from 0 to the length of the array
+        fmt.Printf("%d th element of a is %.2f\n", i, a[i])
+    }
+}
+```
+
+Go provides a better and concise way to iterate over an array by using the range form of the for loop. range returns both the index and the value at that index. Let's rewrite the above code using range. We will also find the sum of all elements of the array.
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    a := [...]float64{67.7, 89.8, 21, 78}
+    sum := float64(0)
+    for i, v := range a {//range returns both the index and value
+        fmt.Printf("%d the element of a is %.2f\n", i, v)
+        sum += v
+    }
+    fmt.Println("\nsum of all elements of a",sum)
+}
+```
+
+In case you want only the value and want to ignore the index, you can do this by replacing the index with the \_ blank identifier.
+
+```go
+for _, v := range a { //ignores index
+}
+```
+
+- Multidimensional arrays
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func printarray(a [3][2]string) {
+    for _, v1 := range a {
+        for _, v2 := range v1 {
+            fmt.Printf("%s ", v2)
+        }
+        fmt.Printf("\n")
+    }
+}
+
+func main() {
+    a := [3][2]string{
+        {"lion", "tiger"},
+        {"cat", "dog"},
+        {"pigeon", "peacock"}, //this comma is necessary. The compiler will complain if you omit this comma
+    }
+    printarray(a)
+    var b [3][2]string
+    b[0][0] = "apple"
+    b[0][1] = "samsung"
+    b[1][0] = "microsoft"
+    b[1][1] = "google"
+    b[2][0] = "AT&T"
+    b[2][1] = "T-Mobile"
+    fmt.Printf("\n")
+    printarray(b)
+}
+```
+
+#### Slices
+
+A slice is a convenient, flexible and powerful wrapper on top of an array. Slices do not own any data on their own. They are just references to existing arrays.
+
+- Creating a slice: A slice with elements of type T is represented by []T
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    a := [5]int{76, 77, 78, 79, 80}
+    var b []int = a[1:4] //creates a slice from a[1] to a[3]
+    fmt.Println(b)
+}
+```
+
+The syntax `a[start:end]` creates a slice from array a starting from index `start` to index `end - 1`
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    c := []int{6, 7, 8} //creates and array and returns a slice reference
+    fmt.Println(c)
+}
+```
+
+In the above program in line no. 9, `c := []int{6, 7, 8}` creates an array with 3 integers and returns a slice reference which is stored in c.
+
+- modifying a slice: A slice does not own any data of its own. It is just a representation of the underlying array. Any modifications done to the slice will be reflected in the underlying array
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    darr := [...]int{57, 89, 90, 82, 100, 78, 67, 69, 59}
+    dslice := darr[2:5]
+    fmt.Println("array before",darr)
+    for i := range dslice {
+        dslice[i]++
+    }
+    fmt.Println("array after",darr)
+}
+```
+
+When a number of slices share the same underlying array, the changes that each one makes will be reflected in the array.
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    numa := [3]int{78, 79 ,80}
+    nums1 := numa[:] //creates a slice which contains all elements of the array
+    nums2 := numa[:]
+    fmt.Println("array before change 1",numa)
+    nums1[0] = 100
+    fmt.Println("array after modification to slice nums1", numa)
+    nums2[1] = 101
+    fmt.Println("array after modification to slice nums2", numa)
+}
+```
+
+In line no. 9, in `numa[:]` the start and end values are missing. The default values for start and end are `0` and `len(numa)` respectively.
+
+- Length and capacity of a slice: The length of the slice is the number of elements in the slice. **The capacity of the slice is the number of elements in the underlying array starting from the index from which the slice is created.**
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    fruitArray := [...]string{"apple", "orange", "grape", "mango", "water melon", "pine apple", "chikoo"}
+    fruitSlice := fruitarray[1:3]
+    fmt.Printf("length of slice %d capacity %d", len(fruitSlice), cap(fruitSlice)) //length of fruitSlice is 2 and capacity is 6
+}
+```
+
+In the above program, fruitSlice is created from indexes 1 and 2 of the fruitArray. Hence the length of fruitSlice is 2.
+
+The length of the fruitArray is 7. fruiteSlice is created from index 1 of fruitArray. Hence the capacity of fruitSlice is the no of elements in fruitArray starting from index 1 i.e from orange and that value is 6. Hence the capacity of fruitSlice is 6. The program prints **length of slice 2 capacity 6.**
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    fruitarray := [...]string{"apple", "orange", "grape", "mango", "water melon", "pine apple", "chikoo"}
+    fruitslice := fruitarray[1:3]
+    fmt.Printf("length of slice %d capacity %d\n", len(fruitslice), cap(fruitslice)) //length of is 2 and capacity is 6
+    fruitslice = fruitslice[:cap(fruitslice)] //re-slicing furitslice till its capacity
+    fmt.Println("After re-slicing length is",len(fruitslice), "and capacity is",cap(fruitslice))
+}
+```
+
+- Creating a slice using make: `func make([]T, len, cap) []T` can be used to create a slice by passing the type, length and capacity. The capacity parameter is optional and defaults to the length. The make function creates an array and returns a slice reference to it.
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    i := make([]int, 5, 5)
+    fmt.Println(i)
+}
+```
+
+The values are zeroed by default when a slice is created using make. The above program will output `[0 0 0 0 0]`.
+
+- Appending to a slice: As we already know arrays are restricted to fixed length and their length cannot be increased. Slices are dynamic and new elements can be appended to the slice using append function. The definition of append function is `func append(s []T, x ...T) []T`.
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    cars := []string{"Ferrari", "Honda", "Ford"}
+    fmt.Println("cars:", cars, "has old length", len(cars), "and capacity", cap(cars)) //capacity of cars is 3
+    cars = append(cars, "Toyota")
+    fmt.Println("cars:", cars, "has new length", len(cars), "and capacity", cap(cars)) //capacity of cars is doubled to 6
+}
+```
+
+It is also possible to append one slice to another using the ... operator.
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    veggies := []string{"potatoes","tomatoes","brinjal"}
+    fruits := []string{"oranges","apples"}
+    food := append(veggies, fruits...)
+    fmt.Println("food:",food)
+}
+```
+
+- Passing a slice to a function: Slices can be thought of as being represented internally by a structure type. This is how it looks
+
+```go
+type slice struct {
+    Length        int
+    Capacity      int
+    ZerothElement *byte
+}
+```
+
+A slice contains the length, capacity and a pointer to the zeroth element of the array. When a slice is passed to a function, even though it's passed by value, the pointer variable will refer to the same underlying array. Hence when a slice is passed to a function as parameter, changes made inside the function are visible outside the function too. Lets write a program to check this out.
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func subtactOne(numbers []int) {
+    for i := range numbers {
+        numbers[i] -= 2
+    }
+
+}
+func main() {
+    nos := []int{8, 7, 6}
+    fmt.Println("slice before function call", nos)
+    subtactOne(nos)                               //function modifies the slice
+    fmt.Println("slice after function call", nos) //modifications are visible outside
+}
+```
+
+output:
+
+```
+slice before function call [8 7 6]
+slice after function call [6 5 4]
+```
+
+- Multidimensional slices:
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+     pls := [][]string {
+            {"C", "C++"},
+            {"JavaScript"},
+            {"Go", "Rust"},
+            }
+    for _, v1 := range pls {
+        for _, v2 := range v1 {
+            fmt.Printf("%s ", v2)
+        }
+        fmt.Printf("\n")
+    }
+}
+```
+
+output:
+
+```
+C C++
+JavaScript
+Go Rust
+```
+
+- Memory Optimization: Slices hold a reference to the underlying array. As long as the slice is in memory, the array cannot be garbage collected. This might be of concern when it comes to memory management. Lets assume that we have a very large array and we are interested in processing only a small part of it. Henceforth we create a slice from that array and start processing the slice. The important thing to be noted here is that the array will still be in memory since the slice references it.
+
+One way to solve this problem is to use the copy function `func copy(dst, src []T) int` to make a copy of that slice. This way we can use the new slice and the original array can be garbage collected.
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func countries() []string {
+    countries := []string{"USA", "Singapore", "Germany", "India", "Australia"}
+    neededCountries := countries[:len(countries)-2]
+    countriesCpy := make([]string, len(neededCountries))
+    copy(countriesCpy, neededCountries) //copies neededCountries to countriesCpy
+    return countriesCpy
+}
+func main() {
+    countriesNeeded := countries()
+    fmt.Println(countriesNeeded)
+}
+```
+
+## [Variadic Functions](https://golangbot.com/variadic-functions/) {#variadic-functions}
+
+Functions in general accept only a fixed number of arguments. A variadic function is a function that accepts a variable number of arguments. If the last parameter of a function definition is prefixed by ellipsis ..., then the function can accept any number of arguments for that parameter. **Only the last parameter of a function can be variadic.**
+
+- Syntax:
+
+```go
+func hello(a int, b ...int) {
+}
+```
+
+In the above function, the parameter b is variadic since it's prefixed by ellipsis and it can accept any number of arguments. This function can be called by using the syntax.
+
+```go
+hello(1, 2) //passing one argument "2" to b
+hello(5, 6, 7, 8, 9) //passing arguments "6, 7, 8 and 9" to b
+```
+
+- Examples and understanding how variadic functions work:
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func find(num int, nums ...int) {
+    fmt.Printf("type of nums is %T\n", nums)
+    found := false
+    for i, v := range nums {
+        if v == num {
+            fmt.Println(num, "found at index", i, "in", nums)
+            found = true
+        }
+    }
+    if !found {
+        fmt.Println(num, "not found in ", nums)
+    }
+    fmt.Printf("\n")
+}
+func main() {
+    find(89, 89, 90, 95)
+    find(45, 56, 67, 45, 90, 109)
+    find(78, 38, 56, 98)
+    find(87)
+}
+```
+
+The way variadic functions work is by converting the variable number of arguments to a slice of the type of the variadic parameter. For instance, in line no. 22 of the program above, the variable number of arguments to the `find` function are 89, 90, 95. The `find` function expects a variadic `int` argument. Hence these three arguments will be converted by the compiler to a slice of type int `[]int{89, 90, 95}` and then it will be passed to the find function.
+
+```text
+type of nums is []int
+89 found at index 0 in [89 90 95]
+
+type of nums is []int
+45 found at index 2 in [56 67 45 90 109]
+
+type of nums is []int
+78 not found in  [38 56 98]
+
+type of nums is []int
+87 not found in  []
+```
+
+- Slice arguments vs Variadic arguments

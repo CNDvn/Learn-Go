@@ -20,7 +20,7 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 
-		token, err := client.VerifyIDToken(context, tokenString)
+		token, err := client.VerifyIDToken(firebaseContext.Background(), tokenString)
 		if err != nil {
 			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			context.Abort()
